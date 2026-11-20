@@ -1,0 +1,12 @@
+diff --git a/pyproject.toml b/pyproject.toml
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -19,7 +19,7 @@ dependencies = [
+     "intake-esm ==2025.12.12",
+     "IPython",
+     "boto3",
+-    "polars-lts-cpu", #Hoping to remove this in the future
++    "polars",
+ ]
+ 
+ [project.scripts]

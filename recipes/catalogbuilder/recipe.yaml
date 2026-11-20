@@ -1,0 +1,79 @@
+schema_version: 1
+
+context:
+  version: "2026.01.01"
+
+package:
+  name: catalogbuilder
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/NOAA-GFDL/CatalogBuilder/archive/refs/tags/${{ version }}.tar.gz
+    sha256: 57b12bcaf5773a9410ebd0be2bdad7f0cb629d75cc8ad10c97cd1425b2b6dd95
+    patches:
+      - use-conda-forge-polars.patch
+  - url: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
+    sha256: e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . -vv --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+    - setuptools >=77
+  run:
+    - python >=${{ python_min }}
+    - pytest
+    - click
+    - xarray
+    - pandas
+    - jsondiff
+    - intake-esm ==2025.12.12
+    - ipython
+    - boto3
+    - polars
+    - pyyaml
+
+tests:
+  - python:
+      imports:
+        - catalogbuilder
+        - catalogbuilder.intakebuilder
+        - catalogbuilder.scripts.gen_intake_gfdl
+      pip_check: true
+      python_version:
+        - ${{ python_min }}.*
+        - "*"
+  - requirements:
+      run:
+        - python ${{ python_min }}.*
+    script:
+      interpreter: python
+      content: |
+        import subprocess
+        from importlib.resources import files
+        from catalogbuilder.intakebuilder.configparser import Config
+
+        subprocess.run(["gen_intake_gfdl", "--help"], check=True)
+        resources = files("catalogbuilder")
+        config = Config(resources.joinpath("intakebuilder/config_default.yaml"))
+        assert config.headerlist
+        assert resources.joinpath("cats/gfdl_template.json").is_file()
+
+about:
+  homepage: https://github.com/NOAA-GFDL/CatalogBuilder
+  summary: Utilities to generate, validate, and combine intake-esm data catalogs
+  license: CC-BY-NC-SA-4.0
+  license_file:
+    - legalcode.txt
+    - pyproject.toml
+  documentation: https://noaa-gfdl.github.io/CatalogBuilder/
+  repository: https://github.com/NOAA-GFDL/CatalogBuilder
+
+extra:
+  recipe-maintainers:
+    - ilaflott
